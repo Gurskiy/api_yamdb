@@ -26,3 +26,30 @@ class GenreSerializer(serializers.ModelSerializer):
             'url': {'lookup_field': 'slug'}
         }
 
+
+class TitleSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели title (create, change, destroy)"""
+    genre = serializers.SlugRelatedField(
+        slug_field='slug',
+        many=True,
+        queryset=Genre.objects.all()
+    )
+    category = serializers.SlugRelatedField(
+        slug_field='slug',
+        queryset=Category.objects.all()
+    )
+
+    class Meta:
+        model = Title
+        fields = '__all__'
+
+
+class ListRetrieveTitleSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели title (list, retrieve)"""
+    #rating =
+    genre = GenreSerializer(many=True)
+    category = CategorySerializer()
+
+    class Meta:
+        model = Title
+        fields = '__all__'

@@ -65,7 +65,6 @@ class Title(models.Model):
         help_text='Дайте название произведению'
     )
     year = models.IntegerField(
-        max_length=4,
         validators=[validate_year],
         verbose_name='Год',
         help_text='Укажите год произведения'
@@ -108,7 +107,7 @@ class GenreTitle(models.Model):
     genre = models.ForeignKey(
         Genre,
         null=True,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         verbose_name='Жанр'
     )
     title = models.ForeignKey(
