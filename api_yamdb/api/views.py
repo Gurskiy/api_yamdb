@@ -20,8 +20,8 @@ class CategoryViewSet(BaseCreateListDestroyViewSet):
     serializer_class = CategorySerializer
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
-    search_fields = ("name",)
-    lookup_field = "slug"
+    search_fields = ('name',)
+    lookup_field = 'slug'
 
 
 class GenreViewSet(BaseCreateListDestroyViewSet):
@@ -31,8 +31,8 @@ class GenreViewSet(BaseCreateListDestroyViewSet):
     serializer_class = GenreSerializer
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
-    search_fields = ("name",)
-    lookup_field = "slug"
+    search_fields = ('name',)
+    lookup_field = 'slug'
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -49,12 +49,12 @@ class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentsSerializer
 
     def get_queryset(self):
-        review_id = self.kwargs.get("review_id")
+        review_id = self.kwargs.get('review_id')
         review = get_object_or_404(Review, id=review_id)
         return review.comments.all()
 
     def perform_create(self, serializer):
-        review_id = self.kwargs.get("review_id")
+        review_id = self.kwargs.get('review_id')
         review = get_object_or_404(Review, id=review_id)
         # serializer.save(author=self.request.user, review=review)
         serializer.save(review=review)

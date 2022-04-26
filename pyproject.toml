@@ -1,0 +1,9 @@
+[tool.black]
+line-length = 79
+skip-string-normalization = true
+
+[tool.isort]
+known_first_party = "posts, api"
+known_django = "django"
+profile = "black"
+line_length = 79
