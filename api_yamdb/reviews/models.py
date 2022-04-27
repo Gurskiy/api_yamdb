@@ -1,25 +1,27 @@
-# from attr import field
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-# from django.db.models import constraints
 
 from .validators import validate_year, validate_username
 
 
 class User(AbstractUser):
     """Кастомная модель пользователя"""
+    ADMIN = 'admin'
+    MODERATOR = 'moderator'
+    USER = 'user'
     USER_ROLES = [
-        ('user', 'пользователь'),
-        ('moderator', 'модератор'),
-        ('admin', 'администратор')
+        (USER, 'Пользователь'),
+        (MODERATOR, 'Модератор'),
+        (ADMIN, 'Администратор')
     ]
 
     role = models.CharField(
         max_length=9,
         choices=USER_ROLES,
         verbose_name='права пользователя',
-        help_text='укажите уровень прав'
+        help_text='укажите уровень прав',
+        default=USER
     )
     username = models.SlugField(
         validators=[validate_username],
@@ -31,7 +33,21 @@ class User(AbstractUser):
     password = models.CharField(max_length=64, blank=True)
     confirmation_code = models.CharField(max_length=16)
 
+    @property
+    def is_moderator(self):
+        return self.role == self.MODERATOR
+
+    @property
+    def is_admin(self):
+        return self.role == self.ADMIN
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username']
+
     class Meta:
+        ordering = ['id']
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
         constraints = [models.UniqueConstraint(
             fields=['username', 'email'], name='unique_user_email'
         )]
