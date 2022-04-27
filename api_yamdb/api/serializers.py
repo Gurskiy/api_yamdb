@@ -25,7 +25,6 @@ class GenreSerializer(serializers.ModelSerializer):
 
 class TitleSerializer(serializers.ModelSerializer):
     """Сериализатор для модели title (create, change, destroy)"""
-
     genre = serializers.SlugRelatedField(
         slug_field='slug', many=True, queryset=Genre.objects.all()
     )
@@ -40,8 +39,10 @@ class TitleSerializer(serializers.ModelSerializer):
 
 class ListRetrieveTitleSerializer(serializers.ModelSerializer):
     """Сериализатор для модели title (list, retrieve)"""
-
-    # rating =
+    rating = serializers.IntegerField(
+        source='reviews__score__avg',
+        read_only=True
+    )
     genre = GenreSerializer(many=True)
     category = CategorySerializer()
 
