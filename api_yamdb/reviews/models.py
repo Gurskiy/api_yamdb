@@ -26,11 +26,11 @@ class User(AbstractUser):
     username = models.SlugField(
         validators=[validate_username],
         verbose_name='Имя пользователя',
-        unique=True
+        unique=True,
+        null=True,
     )
     email = models.EmailField(unique=True)
-    bio = models.TextField(blank=True)
-    password = models.CharField(max_length=64, blank=True)
+    bio = models.TextField(blank=True, null=True)
     confirmation_code = models.CharField(max_length=16)
 
     @property
@@ -120,7 +120,9 @@ class Title(models.Model):
         help_text='Укажите год произведения',
     )
     rating = models.IntegerField(
-        verbose_name='Рейтинг', null=True, default=None
+        verbose_name='Рейтинг',
+        null=True,
+        default=None
     )
     description = models.TextField(
         blank=True,
@@ -129,7 +131,9 @@ class Title(models.Model):
         help_text='Укажите описание произведения.',
     )
     genre = models.ManyToManyField(
-        Genre, through='GenreTitle', verbose_name='Жанр'
+        Genre,
+        through='GenreTitle',
+        verbose_name='Жанр'
     )
     category = models.ForeignKey(
         Category,
