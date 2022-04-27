@@ -1,8 +1,8 @@
-from attr import field
+# from attr import field
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import constraints
+# from django.db.models import constraints
 
 from .validators import validate_year, validate_username
 
@@ -39,7 +39,6 @@ class User(AbstractUser):
 
 class Category(models.Model):
     """Модель категории"""
-
     name = models.CharField(
         max_length=256,
         verbose_name='Название',
@@ -67,7 +66,6 @@ class Category(models.Model):
 
 class Genre(models.Model):
     """Модель жанр"""
-
     name = models.CharField(
         max_length=256,
         verbose_name='Название',
@@ -95,7 +93,6 @@ class Genre(models.Model):
 
 class Title(models.Model):
     """Модель произведения"""
-
     name = models.CharField(
         max_length=200,
         verbose_name='Название произведения',
@@ -137,7 +134,6 @@ class Title(models.Model):
 
 class GenreTitle(models.Model):
     """Связующая модель жанра и произведения."""
-
     genre = models.ForeignKey(
         Genre, null=True, on_delete=models.CASCADE, verbose_name='Жанр'
     )
@@ -150,15 +146,16 @@ class GenreTitle(models.Model):
 
 
 class Review(models.Model):
+    """Модель отклика."""
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
         related_name='reviews',
         verbose_name='Произведения',
     )
-    # author = models.ForeignKey(
-    #     User, on_delete=models.CASCADE, related_name='reviews'
-    # )
+    author = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='reviews'
+    )
     pub_date = models.DateTimeField(
         verbose_name='Дата публикации', auto_now_add=True
     )
@@ -183,9 +180,9 @@ class Review(models.Model):
         ordering = ['-pub_date']
         constraints = [
             models.UniqueConstraint(
-                fields=['title'],
-                name='unique_review'
-                # fields=['author', 'title'], name='unique_review'
+                # fields=['title'],
+                # name='unique_review',
+                fields=['author', 'title'], name='unique_review'
             )
         ]
 
@@ -195,7 +192,6 @@ class Review(models.Model):
 
 class Comment(models.Model):
     """Модель комментария."""
-
     text = models.TextField(
         verbose_name='Текст комментария',
         help_text='Введите текст комментария',
@@ -204,12 +200,12 @@ class Comment(models.Model):
         verbose_name='Дата публикации',
         auto_now_add=True,
     )
-    # author = models.ForeignKey(
-    #     User,
-    #     on_delete=models.CASCADE,
-    #     related_name='comments',
-    #     verbose_name='Автор комментария',
-    # )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name='Автор комментария',
+    )
     review = models.ForeignKey(
         Review,
         on_delete=models.CASCADE,
