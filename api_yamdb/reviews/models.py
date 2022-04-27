@@ -1,6 +1,7 @@
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-from .validators import validate_year
+from .validators import validate_year, validate_username
 
 
 class Category(models.Model):
@@ -65,7 +66,6 @@ class Title(models.Model):
         help_text='Дайте название произведению'
     )
     year = models.IntegerField(
-        max_length=4,
         validators=[validate_year],
         verbose_name='Год',
         help_text='Укажите год произведения'
@@ -119,3 +119,34 @@ class GenreTitle(models.Model):
 
     def __str__(self):
         return f'{self.title}, жанр: {self.genre}'
+
+
+class User(AbstractUser):
+    """Кастомная модель пользователя"""
+    USER_ROLES = [
+        ('user', 'пользователь'),
+        ('moderator', 'модератор'),
+        ('admin', 'администратор')
+    ]
+
+    role = models.CharField(
+        max_length=9,
+        choices=USER_ROLES,
+        verbose_name='права пользователя',
+        help_text='укажите уровень прав'
+    )
+    username = models.SlugField(
+        validators=[validate_username],
+        verbose_name='Имя пользователя',
+        unique=True
+    )
+    email = models.EmailField(unique=True)
+    bio = models.TextField(blank=True)
+    password = models.CharField(max_length=64, blank=True)
+    confirmation_code = models.CharField(max_length=16)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(
+            fields=['username', 'email'], name='unique_user_email'
+        )]
+
