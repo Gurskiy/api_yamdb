@@ -114,7 +114,7 @@ class UserCreateAPIView(APIView):
         serializer = UserCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response({'user': serializer.data})
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class GetTokenAPIView(APIView):
