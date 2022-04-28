@@ -40,6 +40,7 @@ class GenreSerializer(serializers.ModelSerializer):
 
 class TitleSerializer(serializers.ModelSerializer):
     """Сериализатор для модели title (create, change, destroy)"""
+
     genre = serializers.SlugRelatedField(
         slug_field='slug', many=True, queryset=Genre.objects.all()
     )
@@ -54,9 +55,9 @@ class TitleSerializer(serializers.ModelSerializer):
 
 class ListRetrieveTitleSerializer(serializers.ModelSerializer):
     """Сериализатор для модели title (list, retrieve)"""
+
     rating = serializers.IntegerField(
-        source='reviews__score__avg',
-        read_only=True
+        source='reviews__score__avg', read_only=True
     )
     genre = GenreSerializer(many=True)
     category = CategorySerializer()
@@ -107,12 +108,10 @@ class UserCreateSerializer(serializers.ModelSerializer):
             'Код подтверждения от сервиса yamdb',
             f'Ваш код подтверждения - {confirmation_code}',
             'admin@yamdb.com',
-            [validated_data['email']]
+            [validated_data['email']],
         )
         return User.objects.create(
-            confirmation_code=confirmation_code,
-            role='user',
-            **validated_data
+            confirmation_code=confirmation_code, role='user', **validated_data
         )
 
     class Meta:
@@ -122,6 +121,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
 class GetTokenSerializer(serializers.Serializer):
     """Сериализатор для получения токена"""
+
     username = serializers.CharField()
     confirmation_code = serializers.CharField(max_length=16)
     token = serializers.SerializerMethodField()
@@ -142,6 +142,29 @@ class GetTokenSerializer(serializers.Serializer):
 
 class UserSerializer(serializers.ModelSerializer):
     """Сериализатор модели пользователя"""
+
     class Meta:
         model = User
-        fields = ('username', 'email', 'first_name', 'last_name', 'bio', 'role')
+        fields = (
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'bio',
+            'role',
+        )
+
+
+class MeSerializer(serializers.ModelSerializer):
+    role = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = User
+        fields = (
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'bio',
+            'role',
+        )
