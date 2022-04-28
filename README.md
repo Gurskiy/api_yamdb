@@ -31,7 +31,7 @@ pip install -r requirements.txt
 ``` 
 - В папке с файлом manage.py выполните команду:
 ```
-\api_final_yatube\yatube_api\manage.py
+\api_yamdb\api_yamdb\manage.py
 ```
 - Выполнить migrate
 ```
