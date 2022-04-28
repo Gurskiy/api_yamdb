@@ -2,11 +2,11 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Avg
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, viewsets
-from rest_framework.decorators import permission_classes, action
-from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
+from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import generics, status
+from rest_framework import status
 
 from reviews.models import Category, Genre, Review, Comment, Title, User
 from .filters import TitlesFilter
@@ -32,7 +32,6 @@ from .serializers import (
 
 class CategoryViewSet(BaseCreateListDestroyViewSet):
     """Вьюсет для категорий"""
-
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = (IsAdminOrReadOnly,)
@@ -43,7 +42,6 @@ class CategoryViewSet(BaseCreateListDestroyViewSet):
 
 class GenreViewSet(BaseCreateListDestroyViewSet):
     """Вьюсет для жанра"""
-
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = (IsAdminOrReadOnly,)
@@ -54,7 +52,6 @@ class GenreViewSet(BaseCreateListDestroyViewSet):
 
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для произведения"""
-
     queryset = (
         Title.objects.all().annotate(Avg('reviews__score')).order_by('name')
     )
@@ -71,7 +68,6 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет для отзывов"""
-
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
     permission_classes = [AuthorAndStaffOrReadOnly]
@@ -88,8 +84,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     """Вьюсет для комментариев"""
-
-    # queryset = Comment.objects.all()
     serializer_class = CommentsSerializer
     permission_classes = [AuthorAndStaffOrReadOnly]
 
@@ -102,12 +96,10 @@ class CommentViewSet(viewsets.ModelViewSet):
         review_id = self.kwargs.get('review_id')
         review = get_object_or_404(Review, id=review_id)
         serializer.save(author=self.request.user, review=review)
-        # serializer.save(review=review)
 
 
 class UserCreateAPIView(APIView):
     """Регистрация нового пользователя"""
-
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -119,7 +111,6 @@ class UserCreateAPIView(APIView):
 
 class GetTokenAPIView(APIView):
     """Получение токена пользователем"""
-
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -128,27 +119,13 @@ class GetTokenAPIView(APIView):
         return Response({"token": serializer.data['token']})
 
 
-# class MyProfileAPIView(generics.RetrieveUpdateAPIView):
-#     """Получение/изменения данных своей учетной записи"""
-#     queryset = User.objects.all()
-#     serializer_class = UserSerializer
-#     permission_classes = [IsAuthenticated]
-#
-#     def get_object(self):
-#         obj = User.objects.get(username=self.request.user)
-#         return obj
-#
-
-
 class UserViewSet(viewsets.ModelViewSet):
     """Получение списка пользователей/добавления пользователся админом"""
-
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [
         OwnerOrAdmins,
     ]
-    # permission_classes = [IsAdminUser]
     lookup_field = 'username'
 
     @action(

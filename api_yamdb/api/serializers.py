@@ -42,7 +42,6 @@ class GenreSerializer(serializers.ModelSerializer):
 
 class TitleSerializer(serializers.ModelSerializer):
     """Сериализатор для модели title (create, change, destroy)"""
-
     genre = serializers.SlugRelatedField(
         slug_field='slug', many=True, queryset=Genre.objects.all()
     )
@@ -57,7 +56,6 @@ class TitleSerializer(serializers.ModelSerializer):
 
 class ListRetrieveTitleSerializer(serializers.ModelSerializer):
     """Сериализатор для модели title (list, retrieve)"""
-
     rating = serializers.IntegerField(
         source='reviews__score__avg', read_only=True
     )
@@ -70,6 +68,7 @@ class ListRetrieveTitleSerializer(serializers.ModelSerializer):
 
 
 class CommentsSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели комментария"""
     author = serializers.SlugRelatedField(
         read_only=True,
         slug_field='username',
@@ -87,6 +86,7 @@ class CommentsSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
+    """Сериализатов для отзывов"""
     author = serializers.SlugRelatedField(
         read_only=True,
         slug_field='username',
@@ -151,7 +151,6 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
 class GetTokenSerializer(serializers.Serializer):
     """Сериализатор для получения токена"""
-
     username = serializers.CharField()
     confirmation_code = serializers.CharField(max_length=16)
     token = serializers.SerializerMethodField()
@@ -197,6 +196,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class MeSerializer(serializers.ModelSerializer):
+    """Сериализатор для отображения своей учетной записи"""
     role = serializers.CharField(read_only=True)
 
     class Meta:

@@ -7,4 +7,5 @@ class BaseCreateListDestroyViewSet(
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet,
 ):
+    """Кастомный вьюсет для категорий и жанров"""
     pass
