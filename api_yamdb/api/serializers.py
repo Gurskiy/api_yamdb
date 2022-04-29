@@ -196,8 +196,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class MeSerializer(serializers.ModelSerializer):
-    """Сериализатор для отображения своей учетной записи"""
-    role = serializers.CharField(read_only=True)
+    """Сериализатор для редактирования учетной записи"""
 
     class Meta:
         model = User
@@ -209,3 +208,4 @@ class MeSerializer(serializers.ModelSerializer):
             'bio',
             'role',
         )
+        read_only_fields = ('role',)
