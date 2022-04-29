@@ -31,7 +31,7 @@ pip install -r requirements.txt
 ``` 
 - В папке с файлом manage.py выполните команду:
 ```
-\api_yamdb\api_yamdb\manage.py
+cd api_yamdb\manage.py
 ```
 - Выполнить migrate
 ```
