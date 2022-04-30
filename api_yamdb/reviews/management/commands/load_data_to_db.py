@@ -1,14 +1,15 @@
-from csv import DictReader
 from django.core.management import BaseCommand
 
-from reviews.models import (
-    User,
-    Title,
-    Category,
-    Comment,
-    Genre,
-    GenreTitle,
-    Review,
+from reviews.models import (User, Title, Category, Comment, Genre, GenreTitle,
+                            Review)
+from .load_data import (
+    load_data_users,
+    load_data_category,
+    load_data_genre,
+    load_data_title,
+    load_data_genre_title,
+    load_data_review,
+    load_data_comment
 )
 
 
@@ -17,92 +18,35 @@ ALREDY_LOADED_ERROR_MESSAGE = """
 сначала удалите файл db.sqlite3, чтобы уничтожить базу данных.
 Затем запустите `python manage.py миграция` для новой пустой
 базы данных с таблицами"""
+DB_TABLES = [User, Title, Category, Comment, Genre, GenreTitle, Review]
 
 
 class Command(BaseCommand):
     help = "Загрузка данных из директории Static"
 
     def handle(self, *args, **options,):
-        DB_TABLES = [User, Title, Category, Comment, Genre, GenreTitle, Review]
         for table in DB_TABLES:
             if table.objects.exists():
                 print('В базе уже есть данные.')
                 print(ALREDY_LOADED_ERROR_MESSAGE)
                 return
 
-        print("Загрузка данных")
+        print("Загрузка данных:")
         try:
-            for row in DictReader(
-                open('./static/data/users.csv', encoding='utf-8')
-            ):
-                child = User(
-                    id=row['id'],
-                    username=row['username'],
-                    email=row['email'],
-                    role=row['role'],
-                    bio=row['bio'],
-                )
-                child.save()
-            for row in DictReader(
-                open('./static/data/category.csv', encoding='utf-8')
-            ):
-                child = Category(
-                    id=row['id'],
-                    name=row['name'],
-                    slug=row['slug'],
-                )
-                child.save()
-            for row in DictReader(
-                open('./static/data/genre.csv', encoding='utf-8')
-            ):
-                child = Genre(
-                    id=row['id'],
-                    name=row['name'],
-                    slug=row['slug'],
-                )
-                child.save()
-            for row in DictReader(
-                open('./static/data/titles.csv', encoding='utf-8')
-            ):
-                child = Title(
-                    id=row['id'],
-                    name=row['name'],
-                    year=row['year'],
-                    category=Category.objects.get(pk=row['category']),
-                )
-                child.save()
-            for row in DictReader(
-                open('./static/data/genre_title.csv', encoding='utf-8')
-            ):
-                child = GenreTitle(
-                    id=row['id'],
-                    title=Title.objects.get(pk=row['title_id']),
-                    genre=Genre.objects.get(pk=row['genre_id']),
-                )
-                child.save()
-            for row in DictReader(
-                open('./static/data/review.csv', encoding='utf-8')
-            ):
-                child = Review(
-                    id=row['id'],
-                    title=Title.objects.get(pk=row['title_id']),
-                    text=row['text'],
-                    author=User.objects.get(pk=row['author']),
-                    score=row['score'],
-                    pub_date=row['pub_date'],
-                )
-                child.save()
-            for row in DictReader(
-                open('./static/data/comments.csv', encoding='utf-8')
-            ):
-                child = Comment(
-                    id=row['id'],
-                    review=Review.objects.get(pk=row['review_id']),
-                    text=row['text'],
-                    author=User.objects.get(pk=row['author']),
-                    pub_date=row['pub_date'],
-                )
-                child.save()
+            load_data_users()
+            print('Загрузка данных пользователей окончена.')
+            load_data_category()
+            print('Загрузка данных категорий окончена.')
+            load_data_genre()
+            print('Загрузка данных жанров окончена.')
+            load_data_title()
+            print('Загрузка данных произведений окончена.')
+            load_data_genre_title()
+            print('Загрузка данных жанр-произведение окончена.')
+            load_data_review()
+            print('Загрузка данных откликов окончена.')
+            load_data_comment()
+            print('Загрузка данных комментариев окончена.')
         except ValueError:
             print('Неопределенное значение.')
         except Exception:
