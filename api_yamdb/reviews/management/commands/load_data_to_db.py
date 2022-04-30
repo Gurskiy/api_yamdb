@@ -22,11 +22,11 @@ ALREDY_LOADED_ERROR_MESSAGE = """
 class Command(BaseCommand):
     help = "Загрузка данных из директории Static"
 
-    def handle(
+    def handle(  # noqa: C901
         self,
         *args,
         **options,
-    ):  # noqa: max-complexity: 13
+    ):
 
         if (
             User.objects.exists()
