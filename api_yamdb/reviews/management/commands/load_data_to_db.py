@@ -22,24 +22,13 @@ ALREDY_LOADED_ERROR_MESSAGE = """
 class Command(BaseCommand):
     help = "Загрузка данных из директории Static"
 
-    def handle(  # noqa: C901
-        self,
-        *args,
-        **options,
-    ):
-
-        if (
-            User.objects.exists()
-            or Title.objects.exists()
-            or Category.objects.exists()
-            or Comment.objects.exists()
-            or Genre.objects.exists()
-            or GenreTitle.objects.exists()
-            or Review.objects.exists()
-        ):
-            print('В базе уже есть данные.')
-            print(ALREDY_LOADED_ERROR_MESSAGE)
-            return
+    def handle(self, *args, **options,):
+        DB_TABLES = [User, Title, Category, Comment, Genre, GenreTitle, Review]
+        for table in DB_TABLES:
+            if table.objects.exists():
+                print('В базе уже есть данные.')
+                print(ALREDY_LOADED_ERROR_MESSAGE)
+                return
 
         print("Загрузка данных")
         try:
