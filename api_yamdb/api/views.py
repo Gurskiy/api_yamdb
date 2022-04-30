@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 
-from reviews.models import Category, Genre, Review, Comment, Title, User
+from reviews.models import Category, Genre, Review, Title, User
 from .filters import TitlesFilter
 from .mixins import BaseCreateListDestroyViewSet
 from .permissions import (
@@ -32,6 +32,7 @@ from .serializers import (
 
 class CategoryViewSet(BaseCreateListDestroyViewSet):
     """Вьюсет для категорий"""
+
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = (IsAdminOrReadOnly,)
@@ -42,6 +43,7 @@ class CategoryViewSet(BaseCreateListDestroyViewSet):
 
 class GenreViewSet(BaseCreateListDestroyViewSet):
     """Вьюсет для жанра"""
+
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = (IsAdminOrReadOnly,)
@@ -52,6 +54,7 @@ class GenreViewSet(BaseCreateListDestroyViewSet):
 
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для произведения"""
+
     queryset = (
         Title.objects.all().annotate(Avg('reviews__score')).order_by('name')
     )
@@ -68,6 +71,7 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет для отзывов"""
+
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
     permission_classes = [AuthorAndStaffOrReadOnly]
@@ -84,6 +88,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     """Вьюсет для комментариев"""
+
     serializer_class = CommentsSerializer
     permission_classes = [AuthorAndStaffOrReadOnly]
 
@@ -100,6 +105,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 class UserCreateAPIView(APIView):
     """Регистрация нового пользователя"""
+
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -111,6 +117,7 @@ class UserCreateAPIView(APIView):
 
 class GetTokenAPIView(APIView):
     """Получение токена пользователем"""
+
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -121,6 +128,7 @@ class GetTokenAPIView(APIView):
 
 class UserViewSet(viewsets.ModelViewSet):
     """Получение списка пользователей/добавления пользователся админом"""
+
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [
