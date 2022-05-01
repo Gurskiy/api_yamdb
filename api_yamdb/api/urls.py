@@ -22,7 +22,11 @@ router.register(
     CommentViewSet,
     basename='comments',
 )
-router.register(r'titles/(?P<title_id>\d+)/reviews', ReviewViewSet)
+router.register(
+    r'titles/(?P<title_id>\d+)/reviews',
+    ReviewViewSet,
+    basename='reviews'
+)
 router.register(r'users', UserViewSet)
 urlpatterns = [
     path('v1/auth/signup/', UserCreateAPIView.as_view()),
