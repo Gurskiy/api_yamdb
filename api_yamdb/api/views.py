@@ -1,3 +1,5 @@
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django.db.models import Avg
 from django_filters.rest_framework import DjangoFilterBackend
@@ -7,6 +9,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
+from rest_framework_simplejwt.tokens import AccessToken
 
 from reviews.models import Category, Genre, Review, Title, User
 from .filters import TitlesFilter
@@ -28,6 +31,10 @@ from .serializers import (
     UserSerializer,
     MeSerializer,
 )
+
+
+DOMAIN_NAME = 'yamdb.com'
+SENDER_NAME = 'admin'
 
 
 class CategoryViewSet(BaseCreateListDestroyViewSet):
@@ -109,6 +116,18 @@ class UserCreateAPIView(APIView):
         serializer = UserCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        user = get_object_or_404(
+            User,
+            username=serializer.validated_data['username']
+        )
+        confirmation_code = default_token_generator.make_token(user)
+        send_mail(
+            subject='Код подтверждения от сервиса yamdb',
+            message=f'Ваш код подтверждения - {confirmation_code}',
+            from_email=f'{SENDER_NAME}@{DOMAIN_NAME}',
+            recipient_list=[user.email],
+        )
+
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -120,7 +139,18 @@ class GetTokenAPIView(APIView):
     def post(self, request):
         serializer = GetTokenSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        return Response({"token": serializer.data['token']})
+        user = get_object_or_404(
+            User,
+            username=serializer.validated_data['username']
+        )
+
+        if default_token_generator.check_token(
+                user, serializer.validated_data['confirmation_code']
+        ):
+            token = AccessToken.for_user(user)
+            return Response({'token': str(token)}, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserViewSet(viewsets.ModelViewSet):

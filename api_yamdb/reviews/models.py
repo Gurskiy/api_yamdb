@@ -31,7 +31,6 @@ class User(AbstractUser):
     )
     email = models.EmailField(unique=True)
     bio = models.TextField(blank=True, null=True)
-    confirmation_code = models.CharField(max_length=16)
 
     @property
     def is_moderator(self):
@@ -48,9 +47,6 @@ class User(AbstractUser):
         ordering = ['id']
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
-        constraints = [models.UniqueConstraint(
-            fields=['username', 'email'], name='unique_user_email'
-        )]
 
 
 class Category(models.Model):
