@@ -18,13 +18,6 @@ class OwnerOrAdmins(permissions.BasePermission):
             request.user.is_admin or request.user.is_superuser
         )
 
-    def has_object_permission(self, request, view, obj):
-        return (
-            obj == request.user
-            or request.user.is_admin
-            or request.user.is_superuser
-        )
-
 
 class AuthorAndStaffOrReadOnly(BasePermission):
     """Разрешение для модератора, владельца или чтение авторизированных"""
@@ -32,7 +25,7 @@ class AuthorAndStaffOrReadOnly(BasePermission):
         return request.method in SAFE_METHODS or request.user.is_authenticated
 
     def has_object_permission(self, request, view, obj):
-        return request.method in SAFE_METHODS or (
-            request.user.is_authenticated
-            and (obj.author == request.user or request.user.is_moderator)
-        )
+        return (request.method in SAFE_METHODS
+                or request.user.is_moderator
+                or request.user.is_admin
+                or obj.author == request.user)
