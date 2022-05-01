@@ -11,6 +11,10 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from reviews.models import Category, Genre, Title, Comment, Review, User
 
 
+DOMAIN_NAME = 'yamdb.com'
+SENDER_NAME = 'admin'
+
+
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
 
@@ -137,7 +141,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
         send_mail(
             'Код подтверждения от сервиса yamdb',
             f'Ваш код подтверждения - {confirmation_code}',
-            'admin@yamdb.com',
+            f'{SENDER_NAME}@{DOMAIN_NAME}',
             [validated_data['email']],
         )
         return User.objects.create(
