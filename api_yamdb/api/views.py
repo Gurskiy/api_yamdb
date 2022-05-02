@@ -17,7 +17,7 @@ from .mixins import BaseCreateListDestroyViewSet
 from .permissions import (
     IsAdminOrReadOnly,
     OwnerOrAdmins,
-    AuthorAndStaffOrReadOnly,
+    ReviewAndCommentPermission,
 )
 from .serializers import (
     CategorySerializer,
@@ -79,7 +79,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет для отзывов"""
 
     serializer_class = ReviewSerializer
-    permission_classes = [AuthorAndStaffOrReadOnly]
+    permission_classes = [ReviewAndCommentPermission]
 
     def get_queryset(self):
         title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
@@ -94,7 +94,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     """Вьюсет для комментариев"""
 
     serializer_class = CommentsSerializer
-    permission_classes = [AuthorAndStaffOrReadOnly]
+    permission_classes = [ReviewAndCommentPermission]
 
     def get_queryset(self):
         review_id = self.kwargs.get('review_id')
@@ -117,8 +117,7 @@ class UserCreateAPIView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         user = get_object_or_404(
-            User,
-            username=serializer.validated_data['username']
+            User, username=serializer.validated_data['username']
         )
         confirmation_code = default_token_generator.make_token(user)
         send_mail(
@@ -140,12 +139,11 @@ class GetTokenAPIView(APIView):
         serializer = GetTokenSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = get_object_or_404(
-            User,
-            username=serializer.validated_data['username']
+            User, username=serializer.validated_data['username']
         )
 
         if default_token_generator.check_token(
-                user, serializer.validated_data['confirmation_code']
+            user, serializer.validated_data['confirmation_code']
         ):
             token = AccessToken.for_user(user)
             return Response({'token': str(token)}, status=status.HTTP_200_OK)
