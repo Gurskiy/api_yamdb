@@ -1,12 +1,14 @@
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django.db.models import Avg
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, viewsets
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework import status
+from rest_framework_simplejwt.tokens import AccessToken
 
 from reviews.models import Category, Genre, Review, Title, User
 from .filters import TitlesFilter
@@ -14,7 +16,7 @@ from .mixins import BaseCreateListDestroyViewSet
 from .permissions import (
     IsAdminOrReadOnly,
     OwnerOrAdmins,
-    AuthorAndStaffOrReadOnly,
+    ReviewAndCommentPermission,
 )
 from .serializers import (
     CategorySerializer,
@@ -28,6 +30,9 @@ from .serializers import (
     UserSerializer,
     MeSerializer,
 )
+
+DOMAIN_NAME = 'yamdb.com'
+SENDER_NAME = 'admin'
 
 
 class CategoryViewSet(BaseCreateListDestroyViewSet):
@@ -58,7 +63,6 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = (
         Title.objects.all().annotate(Avg('reviews__score')).order_by('name')
     )
-    serializer_class = TitleSerializer
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = [DjangoFilterBackend]
     filterset_class = TitlesFilter
@@ -72,14 +76,12 @@ class TitleViewSet(viewsets.ModelViewSet):
 class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет для отзывов"""
 
-    queryset = Review.objects.all()
     serializer_class = ReviewSerializer
-    permission_classes = [AuthorAndStaffOrReadOnly]
+    permission_classes = [ReviewAndCommentPermission]
 
     def get_queryset(self):
         title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
-        new_queryset = title.reviews.all()
-        return new_queryset
+        return title.reviews.all()
 
     def perform_create(self, serializer):
         title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
@@ -90,7 +92,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     """Вьюсет для комментариев"""
 
     serializer_class = CommentsSerializer
-    permission_classes = [AuthorAndStaffOrReadOnly]
+    permission_classes = [ReviewAndCommentPermission]
 
     def get_queryset(self):
         review_id = self.kwargs.get('review_id')
@@ -103,27 +105,44 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user, review=review)
 
 
-class UserCreateAPIView(APIView):
-    """Регистрация нового пользователя"""
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def user_create(request):
+    """Функция регистрации пользователя"""
+    serializer = UserCreateSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+    user = get_object_or_404(
+        User, username=serializer.validated_data['username']
+    )
+    confirmation_code = default_token_generator.make_token(user)
+    send_mail(
+        subject='Код подтверждения от сервиса yamdb',
+        message=f'Ваш код подтверждения - {confirmation_code}',
+        from_email=f'{SENDER_NAME}@{DOMAIN_NAME}',
+        recipient_list=[user.email],
+    )
 
-    permission_classes = [AllowAny]
-
-    def post(self, request):
-        serializer = UserCreateSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class GetTokenAPIView(APIView):
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def get_token(request):
     """Получение токена пользователем"""
+    serializer = GetTokenSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    user = get_object_or_404(
+        User, username=serializer.validated_data['username']
+    )
 
-    permission_classes = [AllowAny]
+    if default_token_generator.check_token(
+            user, serializer.validated_data['confirmation_code']
+    ):
+        token = AccessToken.for_user(user)
+        return Response({'token': str(token)}, status=status.HTTP_200_OK)
 
-    def post(self, request):
-        serializer = GetTokenSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        return Response({"token": serializer.data['token']})
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserViewSet(viewsets.ModelViewSet):

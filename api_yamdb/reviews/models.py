@@ -17,7 +17,7 @@ class User(AbstractUser):
     ]
 
     role = models.CharField(
-        max_length=9,
+        max_length=50,
         choices=USER_ROLES,
         verbose_name='права пользователя',
         help_text='укажите уровень прав',
@@ -31,7 +31,6 @@ class User(AbstractUser):
     )
     email = models.EmailField(unique=True)
     bio = models.TextField(blank=True, null=True)
-    confirmation_code = models.CharField(max_length=16)
 
     @property
     def is_moderator(self):
@@ -48,9 +47,6 @@ class User(AbstractUser):
         ordering = ['id']
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
-        constraints = [models.UniqueConstraint(
-            fields=['username', 'email'], name='unique_user_email'
-        )]
 
 
 class Category(models.Model):
@@ -194,20 +190,18 @@ class Review(models.Model):
         verbose_name='Оценка',
     )
 
+    def __str__(self):
+        return f'Отзыв {self.text} на {self.title}'
+
     class Meta:
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
         ordering = ['-pub_date']
         constraints = [
             models.UniqueConstraint(
-                # fields=['title'],
-                # name='unique_review',
                 fields=['author', 'title'], name='unique_review'
             )
         ]
-
-    def __str__(self):
-        return f'Отзыв {self.text} на {self.title}'
 
 
 class Comment(models.Model):
@@ -233,10 +227,10 @@ class Comment(models.Model):
         verbose_name='Отзыв',
     )
 
+    def __str__(self):
+        return f'Комментарий от автора(заменить) к {self.review}'
+
     class Meta:
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
         ordering = ['-pub_date']
-
-    def __str__(self):
-        return f'Комментарий от автора(заменить) к {self.review}'
