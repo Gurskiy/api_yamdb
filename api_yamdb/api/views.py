@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Avg
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, viewsets
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -31,7 +31,6 @@ from .serializers import (
     UserSerializer,
     MeSerializer,
 )
-
 
 DOMAIN_NAME = 'yamdb.com'
 SENDER_NAME = 'admin'
@@ -107,48 +106,44 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user, review=review)
 
 
-class UserCreateAPIView(APIView):
-    """Регистрация нового пользователя"""
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def user_create(request):
+    """Функция регистрации пользователя"""
+    serializer = UserCreateSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+    user = get_object_or_404(
+        User, username=serializer.validated_data['username']
+    )
+    confirmation_code = default_token_generator.make_token(user)
+    send_mail(
+        subject='Код подтверждения от сервиса yamdb',
+        message=f'Ваш код подтверждения - {confirmation_code}',
+        from_email=f'{SENDER_NAME}@{DOMAIN_NAME}',
+        recipient_list=[user.email],
+    )
 
-    permission_classes = [AllowAny]
-
-    def post(self, request):
-        serializer = UserCreateSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        user = get_object_or_404(
-            User, username=serializer.validated_data['username']
-        )
-        confirmation_code = default_token_generator.make_token(user)
-        send_mail(
-            subject='Код подтверждения от сервиса yamdb',
-            message=f'Ваш код подтверждения - {confirmation_code}',
-            from_email=f'{SENDER_NAME}@{DOMAIN_NAME}',
-            recipient_list=[user.email],
-        )
-
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class GetTokenAPIView(APIView):
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def get_token(request):
     """Получение токена пользователем"""
+    serializer = GetTokenSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    user = get_object_or_404(
+        User, username=serializer.validated_data['username']
+    )
 
-    permission_classes = [AllowAny]
-
-    def post(self, request):
-        serializer = GetTokenSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = get_object_or_404(
-            User, username=serializer.validated_data['username']
-        )
-
-        if default_token_generator.check_token(
+    if default_token_generator.check_token(
             user, serializer.validated_data['confirmation_code']
-        ):
-            token = AccessToken.for_user(user)
-            return Response({'token': str(token)}, status=status.HTTP_200_OK)
+    ):
+        token = AccessToken.for_user(user)
+        return Response({'token': str(token)}, status=status.HTTP_200_OK)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserViewSet(viewsets.ModelViewSet):
